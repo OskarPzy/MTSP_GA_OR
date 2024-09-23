@@ -148,66 +148,69 @@ def mutation(offspring, mut_prob):
             offspring[i][position1],offspring[i][position2] = offspring[i][position2],offspring[i][position1]
     return offspring
 
-#主程序
-#构建点集并图像输出
-spots=np.load("数据集\spots_data.npy")
-DMAT=np.load("数据集\DMAT_data.npy")
-plt.scatter(spots[:spot_num,0],spots[:spot_num,1],c='b')
-plt.scatter(spots[spot_num:,0],spots[spot_num:,1],c='r')
-plt.savefig("spots_fig.png")
-#运行算法10次，取其最优
-min_len=10000
-op_population=[]
-op_process=[]
-for time in range(10):
-    # 遗传算法求解
-    population = span_population(spot_num, entity_num)  # 初始化种群
-    op_sol = []
-    for i in range(GA_times + 1):  # 遗传迭代
-        old_population = copy.deepcopy(population)
-        # 自然选择
-        fitness = cal_fitness(population, spot_num, routespot_num, DMAT)
-        old_fitness = copy.deepcopy(fitness)
-        population_new = selection(population, fitness)
-        # 基因交叉
-        offspring = crossover(population_new, cross_prob)
-        # 基因变异
-        population = mutation(offspring, mut_prob)
-        fitness = cal_fitness(population, spot_num, routespot_num, DMAT)
-        if sum(fitness) < sum(old_fitness):
-            population = old_population
-            fitness = old_fitness
-        # 收敛数据采集
-        if i % 100 == 0:
-            # 找到该种群中最优个体/最优解
+
+
+if __name__ == "__main__":
+    #主程序
+    #构建点集并图像输出
+    spots=np.load("数据集\spots_data.npy")
+    DMAT=np.load("数据集\DMAT_data.npy")
+    plt.scatter(spots[:spot_num,0],spots[:spot_num,1],c='b')
+    plt.scatter(spots[spot_num:,0],spots[spot_num:,1],c='r')
+    plt.savefig("spots_fig.png")
+    #运行算法10次，取其最优
+    min_len=10000
+    op_population=[]
+    op_process=[]
+    for time in range(10):
+        # 遗传算法求解
+        population = span_population(spot_num, entity_num)  # 初始化种群
+        op_sol = []
+        for i in range(GA_times + 1):  # 遗传迭代
+            old_population = copy.deepcopy(population)
+            # 自然选择
             fitness = cal_fitness(population, spot_num, routespot_num, DMAT)
-            op_entity = population[fitness.index(max(fitness))]
-            op_routes = cut_routes(op_entity, spot_num, routespot_num)
-            op_sol.append(aimfunction(op_routes, DMAT))
+            old_fitness = copy.deepcopy(fitness)
+            population_new = selection(population, fitness)
+            # 基因交叉
+            offspring = crossover(population_new, cross_prob)
+            # 基因变异
+            population = mutation(offspring, mut_prob)
+            fitness = cal_fitness(population, spot_num, routespot_num, DMAT)
+            if sum(fitness) < sum(old_fitness):
+                population = old_population
+                fitness = old_fitness
+            # 收敛数据采集
+            if i % 100 == 0:
+                # 找到该种群中最优个体/最优解
+                fitness = cal_fitness(population, spot_num, routespot_num, DMAT)
+                op_entity = population[fitness.index(max(fitness))]
+                op_routes = cut_routes(op_entity, spot_num, routespot_num)
+                op_sol.append(aimfunction(op_routes, DMAT))
 
-    #更新全局最优解
-    if op_sol[-1]<min_len:
-        min_len=op_sol[-1]
-        op_population=population
-        op_process=op_sol
+        #更新全局最优解
+        if op_sol[-1]<min_len:
+            min_len=op_sol[-1]
+            op_population=population
+            op_process=op_sol
 
-#输出最终最优结果
-fitness = cal_fitness(op_population, spot_num, routespot_num, DMAT)
-op_entity = op_population[fitness.index(max(fitness))]
-op_routes = cut_routes(op_entity, spot_num, routespot_num)
-col_ls = ['green', 'yellow', 'pink', 'orange', 'purple']
-plt.figure(1)
-for i in range(len(op_routes)):
-    plt.plot(spots[op_routes[i], 0], spots[op_routes[i], 1], c=col_ls[i])
-plt.scatter(spots[:spot_num, 0], spots[:spot_num, 1], c='b')
-plt.scatter(spots[spot_num:, 0], spots[spot_num:, 1], c='r')
-plt.savefig("路径规划.png")
-plt.figure(2)
-plt.plot(op_process, c='b')
-plt.savefig("收敛过程.png")
-#命令行输出
-print("点集：")
-print(spots)
-print("最优解={}".format(op_entity))
-print('最短路径={}'.format(min_len))
-plt.show()
+    #输出最终最优结果
+    fitness = cal_fitness(op_population, spot_num, routespot_num, DMAT)
+    op_entity = op_population[fitness.index(max(fitness))]
+    op_routes = cut_routes(op_entity, spot_num, routespot_num)
+    col_ls = ['green', 'yellow', 'pink', 'orange', 'purple']
+    plt.figure(1)
+    for i in range(len(op_routes)):
+        plt.plot(spots[op_routes[i], 0], spots[op_routes[i], 1], c=col_ls[i])
+    plt.scatter(spots[:spot_num, 0], spots[:spot_num, 1], c='b')
+    plt.scatter(spots[spot_num:, 0], spots[spot_num:, 1], c='r')
+    plt.savefig("路径规划.png")
+    plt.figure(2)
+    plt.plot(op_process, c='b')
+    plt.savefig("收敛过程.png")
+    #命令行输出
+    print("点集：")
+    print(spots)
+    print("最优解={}".format(op_entity))
+    print('最短路径={}'.format(min_len))
+    plt.show()
